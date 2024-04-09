@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_nav"
+    app:startDestination="@id/homeScreen">
+
+    <fragment
+        android:id="@+id/homeScreen"
+        android:name="com.example.dictionary.presenter.screen.home.HomeScreen"
+        android:label="HomeScreen"
+        tools:layout="@layout/screen_home">
+        <action
+            android:id="@+id/action_homeScreen_to_speakScreen"
+            app:destination="@id/speakScreen" />
+        <action
+            android:id="@+id/action_homeScreen_to_bookMarkScreen"
+            app:destination="@id/bookMarkScreen" />
+    </fragment>
+    <fragment
+        android:id="@+id/bookMarkScreen"
+        android:name="com.example.dictionary.presenter.screen.bookmark.BookMarkScreen"
+        android:label="BookMarkScreen"
+        tools:layout="@layout/screen_bookmark"/>
+    <fragment
+        android:id="@+id/speakScreen"
+        android:name="com.example.dictionary.presenter.screen.speak.SpeakScreen"
+        android:label="SpeakScreen"
+        tools:layout="@layout/screen_speak"/>
+</navigation>
