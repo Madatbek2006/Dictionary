@@ -7,18 +7,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.dictionary.presenter.adapper.CursorAdapter
 import com.example.dictionary.databinding.ScreenBookmarkBinding
+import com.example.dictionary.presenter.adapper.FavoriteAdapter
 import com.example.dictionary.presenter.dialog.BottomSheetDialog
-import com.example.dictionary.presenter.dialog.DictionaryDialog
-import com.example.dictionary.utils.popBackStack
+import com.example.dictionary.utils.setStatusBar
 
 class BookMarkScreen:Fragment(),BookMarkController.View {
-    private var _binding:ScreenBookmarkBinding?=null
+    var _binding:ScreenBookmarkBinding?=null
     private val binding by lazy { _binding!! }
-    private val adapter by lazy { CursorAdapter() }
+    private val adapter by lazy { FavoriteAdapter.getInstance() }
     private val presenter:BookMarkController.Presenter by lazy { BookMarkPresenter(this) }
+    var onClickFavourite:(()->Unit)?=null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding=ScreenBookmarkBinding.inflate(layoutInflater)
@@ -34,9 +36,6 @@ class BookMarkScreen:Fragment(),BookMarkController.View {
         binding.apply {
             recyclerView.adapter=adapter
             recyclerView.layoutManager=LinearLayoutManager(requireActivity())
-            back.setOnClickListener {
-                presenter.onClickBack()
-            }
         }
         presenter.loadDictionary()
         adapter.onClickItem={it,pos->
@@ -48,6 +47,11 @@ class BookMarkScreen:Fragment(),BookMarkController.View {
 
             }
         }
+        adapter.onClickTrash={
+            presenter.loadDictionary()
+            onClickFavourite?.invoke()
+
+        }
     }
 
 
@@ -58,12 +62,15 @@ class BookMarkScreen:Fragment(),BookMarkController.View {
         }else{
             binding.notFound.visibility=View.INVISIBLE
         }
-        adapter.setCursor(cursor,"")
+        adapter.setCursor(cursor)
     }
 
     override fun back() {
-        popBackStack()
+        findNavController().navigateUp()
     }
 
-
+    override fun onDestroy() {
+        _binding=null
+        super.onDestroy()
+    }
 }

@@ -2,27 +2,37 @@ package com.example.dictionary.presenter.screen.home
 
 import android.app.Activity
 import android.content.Context
-import android.database.Cursor
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.core.os.bundleOf
-import androidx.core.view.GravityCompat
+import androidx.core.view.get
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
+import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieProperty
+import com.airbnb.lottie.model.KeyPath
 import com.example.dictionary.R
 import com.example.dictionary.databinding.ScreenHomeBinding
-import com.example.dictionary.presenter.adapper.CursorAdapter
-import com.example.dictionary.presenter.dialog.BottomSheetDialog
-import com.example.dictionary.presenter.screen.main.MainController
-import com.example.dictionary.presenter.screen.main.MainPresenter
+import com.example.dictionary.presenter.adapper.HomeAdapter
+import com.example.dictionary.presenter.screen.bookmark.BookMarkScreen
+import com.example.dictionary.presenter.screen.main.MainScreen
+import com.example.dictionary.presenter.screen.speak.AddWordScreen
+import com.example.dictionary.utils.myLog
+import com.example.dictionary.utils.setStatusBar
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
 
 class HomeScreen:Fragment(),HomeController.View {
     private var _binding:ScreenHomeBinding?=null
@@ -30,10 +40,13 @@ class HomeScreen:Fragment(),HomeController.View {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var drawerToggle:ActionBarDrawerToggle
     private  var isUz=false
-
+    private var isActiveDrawerLayout=false
     private var isUzb=false
-    private val presenter: MainController.Presenter by lazy { MainPresenter(this) }
-    private val adapter by lazy { CursorAdapter() }
+    private lateinit var adapter:HomeAdapter
+    private  var mainScreen: MainScreen=MainScreen()
+    private  var bookMarkScreen=BookMarkScreen()
+    private  var addWordScreen=AddWordScreen()
+    private val presenter:HomeController.Presenter by lazy {  HomePresenter(this)}
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -44,128 +57,168 @@ class HomeScreen:Fragment(),HomeController.View {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initAdapter()
         innit()
-        innit1()
-    }
-    private fun innit(){
-        drawerLayout = binding.drawerLayout
-        drawerToggle = ActionBarDrawerToggle(requireActivity(), drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        drawerLayout.addDrawerListener(drawerToggle)
-        drawerToggle.syncState()
-        drawerLayout.closeDrawers()
-
-        binding.menu.setOnClickListener {
-            // Toggle the drawer when the button is clicked
-            drawerLayout.openDrawer(GravityCompat.START)
-            hideKeyboardFrom(requireActivity(),binding.menu)
-        }
-
-        val navigationView = binding.navView
-        navigationView.setNavigationItemSelectedListener {
-            when (it.itemId) {
-                R.id.izbrannoe -> {
-                    findNavController().navigate(HomeScreenDirections.actionHomeScreenToBookMarkScreen())
-
-                }
-                R.id.dictionary->{
-                }
-                R.id.speak->{
-                    findNavController().navigate(HomeScreenDirections.actionHomeScreenToSpeakScreen())
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                "handleOnBackPressed".myLog()
+                if (binding.viewPager2.currentItem!=0){
+                    setPos(0)
+                }else{
+                    requireActivity().finish()
                 }
             }
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
+
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+
+//        val animationView: LottieAnimationView = findViewById(R.id.animation_view)
+        binding.transfer.addValueCallback(
+            KeyPath("**"),
+            LottieProperty.COLOR_FILTER
+        ) { PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP) }
+    }
+    private fun innit()=binding.apply{
+        requireActivity().setStatusBar(spase)
+
+        menu.setOnClickListener {
+            // Toggle the drawer when the button is clicked
+            drawerLayout.openDrawer(Gravity.RIGHT)
+            hideKeyboardFrom(requireActivity(),binding.menu)
+
+        }
+        navView.post {
+            if (!isActiveDrawerLayout){
+                requireActivity().setStatusBar(navView.findViewById(R.id.spase))
+                isActiveDrawerLayout=true
+            }
+        }
+
+
+        navView.setNavigationItemSelectedListener {
+            when (it.itemId) {
+                com.example.dictionary.R.id.home->{
+                    setPos(0)
+                }
+                com.example.dictionary.R.id.favourites -> {
+                    setPos(1)
+                }
+                com.example.dictionary.R.id.speak->{
+                    setPos(2)
+                }
+            }
+            binding.drawerLayout.closeDrawer(Gravity.RIGHT)
             return@setNavigationItemSelectedListener true
         }
-        binding.transfer.setOnClickListener {
-            if (isUz){
-                isUz=false
-                setLangvich(isUz)
+        for (i in 0 until 3){
+            bottomNavigationView.menu[i].setOnMenuItemClickListener {
+                setPos(i)
+                return@setOnMenuItemClickListener true
+            }
+        }
+        back.setOnClickListener {
+            if (binding.viewPager2.currentItem!=0){
+                setPos(0)
             }else{
-                isUz=true
-                setLangvich(isUz)
+                findNavController().navigateUp()
             }
         }
-
-
-    }
-    fun innit1(){
-        presenter.loadFull()
-        binding.apply {
-            recyclerView.adapter=adapter
-            recyclerView.layoutManager= LinearLayoutManager(requireActivity())
-            search.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-                }
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-
-                }
-
-                override fun afterTextChanged(s: Editable?) {
-                    if (search.text.isEmpty()){
-                        presenter.loadFull()
-
-                    }else{
-                        val text=search.text.toString()
-                        presenter.loadDictionary(text,isUzb)
-                    }
-
-                }
-            })
-            searchButton.setOnClickListener {
-                hideKeyboardFrom(requireActivity(),searchButton)
+        transfer.setOnClickListener {
+            transfer.playAnimation()
+            if (mainScreen._binding!=null){
+                mainScreen.setTranswer()
             }
-
-
-
         }
-        adapter.onClickItem={it,pos->
-//            val dictionary=presenter.getCurrentWord(it)
-//            val dialog=DictionaryDialog().apply {
-//                arguments= bundleOf(Pair("eng",dictionary.english),Pair("uzb",dictionary.uzbek),Pair("type",dictionary.type),Pair("tran",dictionary.transcript))
-//            }
-//            dialog.show(requireActivity().supportFragmentManager,"")
-
-//            val bottomShettBinding=BottomSheetDialogFragment(R.layout.bottom_shett)
-
-//            val bottom=BottomShettBinding.inflate(LayoutInflater.from(binding.root.context),binding.root,false)
-////            bottomShettBinding.onCreateView(bottom,binding.root,Bundle())
-//            bottomShettBinding.show(requireActivity().supportFragmentManager,"")
-            val bottom= BottomSheetDialog().apply {
-                arguments= bundleOf(Pair("pos",it))
-            }
-            bottom.show(requireActivity().supportFragmentManager,"")
-            bottom.onDestroyListener={
-
-            }
-
-        }
-    }
-
-    override fun showDictionary(cursor: Cursor) {
-        if (cursor.count==0){
-            binding.notFound.visibility=View.VISIBLE
-        }else{
-            binding.notFound.visibility=View.INVISIBLE
-        }
-
-        adapter.setCursor(cursor,binding.search.text.toString())
     }
 
     override fun openBookMarkFragment() {
         findNavController().navigate(HomeScreenDirections.actionHomeScreenToBookMarkScreen())
     }
-    fun setLangvich(bool:Boolean){
-        isUzb=bool
-        adapter.setIsUzb(isUzb)
-        adapter.notifyDataSetChanged()
-        presenter.loadFull()
+
+    private fun initAdapter() {
+        adapter= HomeAdapter(this,mainScreen,bookMarkScreen, addWordScreen)
+        binding.apply {
+            viewPager2.isUserInputEnabled=false
+            viewPager2.adapter=adapter
+        }
+
+
+        mainScreen.onClickFavourite={
+            if (bookMarkScreen._binding!=null){
+                lifecycleScope.launch {
+                    delay(100)
+                    bookMarkScreen.showDictionary(presenter.getCursor())
+                }
+            }
+        }
+        bookMarkScreen.onClickFavourite={
+            if (mainScreen._binding!=null){
+                "salom".myLog()
+                lifecycleScope.launch {
+                    delay(100)
+                    mainScreen.setLangvich(mainScreen.isUzb)
+                }
+            }
+        }
+        addWordScreen.setOnNewWordListener={
+            if (mainScreen._binding!=null){
+                "salom".myLog()
+                lifecycleScope.launch {
+                    delay(100)
+                    mainScreen.setLangvich(mainScreen.isUzb)
+                    Toast.makeText(requireContext(),"Word added successfully", Toast.LENGTH_SHORT).show()
+                }
+            }
+            if (bookMarkScreen._binding!=null){
+                lifecycleScope.launch {
+                    delay(100)
+                    bookMarkScreen.showDictionary(presenter.getCursor())
+                }
+            }
+
+        }
+
     }
+
     fun hideKeyboardFrom(context: Context, view: View?) {
         val imm =
             context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view?.windowToken, 0)
+    }
+    fun setPos(pos:Int){
+        binding.apply {
+            if (pos==0){
+                back.visibility=View.GONE
+                transfer.visibility=View.VISIBLE
+                screenTxt.text="Home"
+//                if (viewPager2.currentItem!=0){
+//                    if (
+//                        mainScreen._binding!=null
+//                    ){
+//                        mainScreen.setLangvich(mainScreen.isUzb)
+//                    }
+//                }
+            }else if (pos==1){
+                back.visibility=View.VISIBLE
+                transfer.visibility=View.GONE
+//                if (viewPager2.currentItem!=1){
+//                    if (
+//                        bookMarkScreen._binding!=null
+//                    ){
+//                        bookMarkScreen.showDictionary(presenter.getCursor())
+//                    }
+//                }
+                screenTxt.text="Favourites"
+            }else if (pos==2){
+
+                back.visibility=View.VISIBLE
+                transfer.visibility=View.GONE
+                screenTxt.text="Add Word"
+            }
+            viewPager2.currentItem=pos
+            bottomNavigationView.menu[pos].isChecked=true
+        }
     }
 
 }

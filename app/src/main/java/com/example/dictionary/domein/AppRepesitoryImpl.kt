@@ -50,6 +50,7 @@ object AppRepesitoryImpl:AppRepesitory {
     }
 
     override fun getCurrentWord(id: Long): Dictionary = dao.getDictionary(id)
+    override fun getUzb(): Cursor = dao.getUzb()
 
 
 }

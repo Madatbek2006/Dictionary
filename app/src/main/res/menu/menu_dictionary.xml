@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-    xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item android:id="@+id/dictionary"
-        android:icon="@drawable/language"
-        android:title="Dictionary"/>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:ignore="MissingDefaultResource">
+    <item android:id="@+id/home"
+        android:icon="@drawable/home"
+        android:title="Home"/>
+    <item android:id="@+id/favourites"
+        android:icon="@drawable/ic_baseline_chek"
+        android:title="Favourites"/>
     <item android:id="@+id/speak"
-        android:icon="@drawable/ic_search_microphone"
-        android:title="Speak"/>
-    <item android:id="@+id/izbrannoe"
-        android:icon="@drawable/ic_bookmark_unchek"
-        android:title="Избранное"/>
+        android:icon="@drawable/plus"
+        android:title="Add"/>
 
 </menu>

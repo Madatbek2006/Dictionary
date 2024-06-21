@@ -4,7 +4,6 @@ import android.database.Cursor
 
 interface SpeakController {
     interface View{
-        fun showText(text:String)
     }
     interface Model{
         fun getEngText(text:String):String

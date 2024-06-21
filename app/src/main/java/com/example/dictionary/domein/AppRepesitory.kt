@@ -12,4 +12,5 @@ interface AppRepesitory {
     fun getEngText(text:String):String
     fun getUzbText(text:String):String
     fun getCurrentWord(id:Long):Dictionary
+     fun getUzb(): Cursor
 }

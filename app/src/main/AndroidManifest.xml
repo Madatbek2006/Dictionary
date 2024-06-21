@@ -14,6 +14,10 @@
         android:theme="@style/Theme.Dictionary"
         tools:targetApi="31">
         <activity
+            android:theme="@style/Theme.RemoveSplashScreenTheme"
+            android:launchMode="singleInstance"
+            android:noHistory="true"
+            android:screenOrientation="portrait"
             android:name=".presenter.activity.MainActivity"
             android:exported="true">
             <intent-filter>

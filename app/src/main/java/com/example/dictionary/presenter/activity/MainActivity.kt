@@ -8,15 +8,14 @@ import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.widget.Toast
 import com.example.dictionary.R
-//import com.example.dictionary.presenter.screen.home.HomeScreen
-//import com.example.dictionary.presenter.screen.main.MainScreen
-import com.example.dictionary.utils.addScreen
+import com.example.dictionary.utils.statusBarTRANSPARENT
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 //        addScreen(HomeScreen())
+        statusBarTRANSPARENT()
     }
     private val REQ_CODE_SPEECH_INPUT = 100
     var shareData: ((String) -> Unit)? = null
@@ -43,7 +42,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQ_CODE_SPEECH_INPUT) {
-            if (resultCode == Activity.RESULT_OK && data != null) {
+            if (resultCode == RESULT_OK && data != null) {
                 val message = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
 
                 shareData?.invoke(message.toString())

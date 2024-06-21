@@ -14,7 +14,13 @@ class MainModel: MainController.Model {
         return appRepesitory.getEngDictionary(text)
     }
 
-    override fun getFull():Cursor=appRepesitory.getFull()
+    override fun getFull(boolean: Boolean):Cursor{
+
+        if (boolean){
+            return appRepesitory.getUzb()
+        }
+        return appRepesitory.getFull()
+    }
     override fun getCurrentWord(id: Long): Dictionary =appRepesitory.getCurrentWord(id)
 
 }

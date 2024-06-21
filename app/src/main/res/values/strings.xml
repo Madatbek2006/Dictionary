@@ -2,4 +2,6 @@
     <string name="app_name">Dictionary</string>
     <string name="navigation_drawer_open">fcdsc\n</string>
     <string name="navigation_drawer_close">asdfghj\n</string>
+    <string name="search_only_one_word1">Search only one word</string>
+    <string name="search_only_one_word2">Ovoz orqali so\'z qidirish</string>
 </resources>
